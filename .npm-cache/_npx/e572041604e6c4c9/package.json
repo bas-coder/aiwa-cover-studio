@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@pixel-point/toolcraft": "^0.0.26"
+  },
+  "_npx": {
+    "packages": [
+      "@pixel-point/toolcraft@0.0.26"
+    ]
+  }
+}
