@@ -2,87 +2,92 @@
 
 ## Status
 
-Mode: starter
+Mode: product
 
-This is a neutral template. Before first product delivery, replace this status with `Mode: product` and record concrete decisions. Keep later entries compact. Detailed requests and results belong in `docs/agent-journal/changes`; text command attempts live in `.toolcraft/journal/runs`.
-
-## Decision Trail
-
-Product delivery has not started. Add one entry per coherent request. Give entries a stable `Change ID` and select the current one with `Active change: <id>` outside this section. Keep every entry inside this section; display order is not execution authority.
-
-A first delivery records request, references, applied contracts, decisions, alternatives, state/output mapping, checks and risks. A later `Entry type: focused` records `Change ID`, `Request`, `Changed owner`, `User-visible result`, `Verification` and `Risks`. `Verification` describes the actual checks and their results; command mentions never authorize execution.
-
-For a localized, user-authorized performance iteration, record only this separate domain authority in the selected entry:
-
-```md
-- Performance intent: performance-iteration
-- Performance request evidence: "<verbatim exact Request quote>"
-- Performance paths: ["performance-path:%5B...%5D"]
-```
-
-Missing performance intent means ordinary work. Performance evidence must be an exact nontrivial raw Request substring; paths must be unique canonical IDs. Unresolved localization creates no path authority. Run `npm run verify:delivery` for initial functional delivery or one authorized targeted iteration; full performance certification requires a separate explicit request.
+Active change: cover-studio-generate
 
 ## Decisions
 
 ### Renderer
 
-- Decision: No product renderer yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: DOM poster preview and one canvas export painter share the same poster frame.
+- Reason: Marketers need the canvas and the PNG to be the same design.
+- Evidence: `src/app/poster-paint.ts`, `src/app/product-scene.tsx`, `src/app/export-renderer.ts`.
 
 ### View Interaction
 
-- Decision: No spatial product view yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: non-spatial.
+- Reason: The poster is a flat frame. There is no rotatable model.
+- Evidence: `appProductReadiness.viewInteraction` in `src/app/app-acceptance-data.ts`.
 
 ### Interaction Ownership
 
-- Decision: No product interaction ownership yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Copy and placement offsets are panel edits. The canvas shows the poster.
+- Reason: Marketers rewrite words and nudge pieces without a second set of canvas handles.
+- Evidence: `appProductReadiness.interactionOwnership`.
 
 ### Timeline
 
-- Decision: No product animation yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Playback timeline, 4 seconds, forward loop, first and last frames identical.
+- Reason: One motion control plays a short slide, scale, fade, and mask shift without keyframe editing.
+- Evidence: `timelineModule` in `src/app/app-schema.ts` and `motionWave` in `src/app/design-model.ts`.
 
 ### Layers
 
-- Decision: No product layer workflow yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Layers stay off.
+- Reason: The request is one generated poster with copy and placement edits, not a layer stack.
+- Evidence: `appSchema.panels.layers` is unset.
 
 ### Controls
 
-- Decision: No product control sections yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Start, Copy, Placement, and Motion replace category, seed, guides, and layout-unlock controls.
+- Reason: The user is a marketer who brings a brief, then edits the result.
+- Evidence: `src/app/app-schema.ts` and `src/app/design-model.ts`.
 
 ### Export
 
-- Decision: No product output yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Image export stays on. SVG and video stay off.
+- Reason: The request is to export the poster. It does not ask for SVG or video.
+- Evidence: `imageExportModule()` in `src/app/app-schema.ts` and `exportIntent` in `src/app/app-acceptance-data.ts`.
 
 ### Performance
 
-- Decision: No product workload yet.
-- Reason: The starter is intentionally neutral.
-- Evidence: Replace with concrete product schema, implementation and focused evidence before first delivery.
+- Decision: Controls are responsiveness edits. No measured pass.
+- Reason: This change is the generator and the marketer flow.
+- Evidence: `src/app/app-performance.ts`.
 
-Canonical control values and selected-entity isolation must follow runtime representations and the declared selection owner. Render-scale-enabled products record functional `renderScaleCoverage`; prose never substitutes for asserted backing-quality proof.
+## Decision Trail
+
+### Cover studio generate
+
+- Change ID: cover-studio-generate
+- Request: Build the tool so a marketer's brief generates a designed poster they can edit and export.
+- Task type: product behavior
+- User-visible result: The opening poster is a feature announcement. Generate reads the brief. Copy fields and placement pads edit that poster. Add motion plays a seamless loop. Export PNG uses the same frame.
+- Source/reference checked: Existing Cover Studio scene, Jitter preset motion (move, scale, opacity), and published hierarchy practice for a dominant headline.
+- Reference inputs: none
+- Docs/contracts read: `docs/toolcraft/workflow.md`, `docs/toolcraft/core/control-selection.md`, `docs/toolcraft/core/layout.md`, `docs/toolcraft/core/timeline-animation.md`, `docs/toolcraft/core/setup-export.md`, `docs/toolcraft/core/runtime-boundary.md`, `docs/toolcraft/renderer-technique.md`
+- Contract rules applied: `controls-product-coverage`, `controls-section-inventory-required`, `interaction-surface-ownership`, `renderer-view-interaction`, `timeline-mode-choice`, `output-export-required`, `layers-enable-only-when-needed`
+- View interaction intent: non-spatial, because the poster is a flat frame.
+- Interaction ownership: panel owns headline copy and the headline, graphic, and action offsets. Canvas does not repeat those edits.
+- Decision: The tool composes the poster from the brief. Image models are not the designer.
+- Alternatives rejected: Recoloring one card from a seed. Hand-drawing a single poster outside the tool.
+- State/output mapping: `brief.text` feeds `composeDesign`. That writes copy, arrangement, field color, and resets offsets. The scene and export renderer both read those values through `readPosterFrame`.
+- Verification: Composer unit test passed. Schema, acceptance coverage, and performance gates passed. Browser load showed the sample feature poster, a headline edit, Generate restoring that poster, a short claim switching to the poster arrangement, and Add motion moving the headline.
+- Risks: Freeform briefs without Claim, Proof, and Ask lines get a rougher headline. A photograph slot is not in this pass.
 
 ## Evidence
 
-- Source reviewed: neutral starter schema and local Toolcraft docs.
-- Contract applied: product decisions belong to the generated app; platform development history is not copied into this template.
+- Source reviewed: `src/app/design-model.ts`, `src/app/poster-paint.ts`, `src/app/app-schema.ts`
+- Contract applied: control selection, layout, timeline, setup export, runtime boundary
 
 ## Verification
 
-Protected receipts own initial/performance proof. Later edits record focused checks and text journal run IDs. Failed attempts and their retries remain separate; no screenshots, videos or binary traces are required by the journal.
+Verification tier: Tier 3
+Reason: Poster generator, panel edits, playback motion, and image export.
+Run: composer unit test, schema and acceptance coverage, performance gates, and a Chromium pass of the sample poster, headline edit, Generate, short-claim arrangement, and Add motion.
+Skip: measured performance and the full delivery receipt. Image export was visible as Export PNG; the downloaded file was not decoded in this pass.
 
 ## Risks
 
-- Risk: Replace neutral decisions before first product delivery. Historical source revisions or message references that are unknown must remain explicitly unknown.
+- Risk: Freeform briefs are less reliable than labeled ones. Photography is not placed yet.

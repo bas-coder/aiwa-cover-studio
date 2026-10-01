@@ -1,58 +1,130 @@
 "use client";
 
-import { useToolcraftEvaluatedValues } from "@/toolcraft/runtime/react";
-import { directCreative, type CreativeIntensity } from "./creative-director";
+import { getToolcraftTimelineLoopProgress } from "@/toolcraft/runtime";
+import {
+  useToolcraftEvaluatedValues,
+  useToolcraftSelector,
+  useToolcraftViewportInteractionActive,
+} from "@/toolcraft/runtime/react";
+
+import { readPosterFrame } from "./poster-paint";
 import styles from "./product-scene.module.css";
 
-const text = (values: Record<string, unknown>, target: string, fallback: string) =>
-  typeof values[target] === "string" ? String(values[target]) : fallback;
+const restingProgress = 0;
 
 export function ProductScene() {
   const values = useToolcraftEvaluatedValues();
-  const direction = directCreative({
-    category: text(values, "brief.category", "brand"),
-    intensity: text(values, "brief.intensity", "balanced") as CreativeIntensity,
-    seed: Number(values["variation.seed"] ?? 1),
-  });
-  const unlocked = values["composition.unlocked"] === true;
-  const showGuides = values["composition.guides"] !== false;
-  const showCrop = values["composition.cropPreview"] === true;
-  const visualStyle = text(values, "composition.visualStyle", "focus-card");
-  const accentClass = direction.accent === "#ffb64d" ? styles.accentGold : direction.accent === "#f47a28" ? styles.accentDeep : direction.accent === "#ffd08a" ? styles.accentSoft : styles.accentOrange;
-  const scaleClass = direction.titleScale < 0.9 ? styles.scaleSafe : direction.titleScale > 1.1 ? styles.scaleBold : "";
+  const progress = useToolcraftSelector((state) =>
+    getToolcraftTimelineLoopProgress({
+      currentTimeSeconds: state.timeline.currentTimeSeconds,
+      durationSeconds: state.timeline.durationSeconds,
+    }),
+  );
+  const interacting = useToolcraftViewportInteractionActive();
+  const poster = readPosterFrame(values, interacting ? restingProgress : progress);
+  const { boxes, motion } = poster;
+  const claimShift = `${motion.claimOffsetY * 100}cqh`;
+  const markShift = `${motion.markOffsetX * 100}cqw`;
+
   return (
     <article
-      className={`${styles.stage} ${accentClass} ${scaleClass} ${unlocked ? styles.unlocked : ""}`}
+      className={`${styles.stage} ${poster.theme === "paper" ? styles.paper : ""} ${poster.arrangement === "poster" ? styles.poster : ""}`}
+      data-poster-layout={poster.arrangement}
+      data-poster-theme={poster.theme}
+      data-toolcraft-product-output=""
     >
-      <div className={styles.orb} />
-      <div className={`${styles.visual} ${visualStyle === "workflow" ? styles.workflow : visualStyle === "product-object" ? styles.productObject : styles.focusCard}`} aria-hidden="true">
-        <div className={styles.visualGlow} />
-        <div className={styles.visualPanel}>
-          <span className={styles.visualIcon}>A</span>
-          <span className={styles.visualLine} />
-          <span className={styles.visualLineShort} />
-          <span className={styles.visualAction}>→</span>
-        </div>
-        <i className={styles.nodeOne}>01</i>
-        <i className={styles.nodeTwo}>02</i>
+      <div className={styles.mesh} style={{ transform: `translateX(${motion.wave * 1.5}%)` }} />
+      {poster.arrangement === "split" ? <div className={styles.panel} /> : null}
+      <div
+        className={styles.pattern}
+        style={{
+          backgroundPositionX: `${motion.patternOffset}px`,
+          height: `${boxes.mark.h * 100}%`,
+          left: `${(boxes.mark.x + motion.markOffsetX) * 100}%`,
+          top: `${boxes.mark.y * 100}%`,
+          width: `${boxes.mark.w * 100}%`,
+        }}
+      />
+      <div
+        className={styles.mark}
+        style={{
+          height: `${boxes.mark.h * 100}%`,
+          left: `${(boxes.mark.x + motion.markOffsetX) * 100}%`,
+          top: `${boxes.mark.y * 100}%`,
+          transform: `scale(${motion.markScale})`,
+          width: `${boxes.mark.w * 100}%`,
+        }}
+      >
+        <svg aria-hidden="true" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" fill="none" r="78" stroke="currentColor" strokeWidth="2" />
+          <path
+            d="M46 132 A70 70 0 0 1 164 74"
+            fill="none"
+            stroke="#e86a1f"
+            strokeLinecap="round"
+            strokeWidth="8"
+          />
+          <circle cx="156" cy="64" fill="#e86a1f" r="9" />
+        </svg>
       </div>
-      <div className={styles.content}>
-        <header className={styles.header}>
-          <img className={styles.logo} src="/brand/wordmark.svg" alt="AIWA" />
-          <span className={styles.profile}>{text(values, "brief.platform", "Open Graph")}</span>
-        </header>
-        <main className={styles.body}>
-          <p className={styles.eyebrow}>{text(values, "copy.eyebrow", "AIWA intelligence")}</p>
-          <h1 className={styles.title}>{text(values, "copy.title", "A better way to build what matters")}</h1>
-          <p className={styles.subtitle}>{text(values, "copy.subtitle", "Turn focused ideas into high-quality experiences with an AI-assisted creative system built for your brand.")}</p>
-        </main>
-        <footer className={styles.footer}>
-          <span className={styles.cta}>{text(values, "copy.cta", "Explore the story")}</span>
-          <span className={styles.meta}>AIWA / {text(values, "brief.category", "Brand")}</span>
-        </footer>
-      </div>
-      {showGuides ? <div className={styles.guides} /> : null}
-      {showCrop ? <div className={styles.crop} /> : null}
+      <img
+        alt="AIWA"
+        className={`${styles.logo} ${poster.theme === "ink" ? styles.inkLogo : ""}`}
+        src="/brand/wordmark.svg"
+        style={{
+          left: `${boxes.logo.x * 100}%`,
+          top: `${boxes.logo.y * 100}%`,
+          width: `${boxes.logo.w * 100}%`,
+        }}
+      />
+      <p
+        className={styles.eyebrow}
+        style={{
+          left: `${boxes.eyebrow.x * 100}%`,
+          top: `${boxes.eyebrow.y * 100}%`,
+          width: `${boxes.eyebrow.w * 100}%`,
+        }}
+      >
+        {poster.eyebrow}
+      </p>
+      <h1
+        className={styles.claim}
+        data-poster-claim=""
+        data-toolcraft-product-text=""
+        style={{
+          fontSize: `${poster.claimScale * 100}cqi`,
+          left: `${boxes.claim.x * 100}%`,
+          top: `${boxes.claim.y * 100}%`,
+          transform: `translateY(${claimShift})`,
+          width: `${boxes.claim.w * 100}%`,
+        }}
+      >
+        {poster.claim}
+      </h1>
+      {poster.proof ? (
+        <p
+          className={styles.proof}
+          style={{
+            left: `${boxes.proof.x * 100}%`,
+            top: `${boxes.proof.y * 100}%`,
+            width: `${boxes.proof.w * 100}%`,
+          }}
+        >
+          {poster.proof}
+        </p>
+      ) : null}
+      <p
+        className={styles.ask}
+        style={{
+          left: `${boxes.ask.x * 100}%`,
+          opacity: motion.askOpacity,
+          top: `${boxes.ask.y * 100}%`,
+          transform: `translateX(${markShift})`,
+          width: `${boxes.ask.w * 100}%`,
+        }}
+      >
+        {poster.ask}
+      </p>
     </article>
   );
 }
