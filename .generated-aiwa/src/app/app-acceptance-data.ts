@@ -18,31 +18,49 @@ const persistenceSlices =
 
 const posterTest = {
   budget: "standard" as const,
-  file: "e2e/app-banner.spec.ts" as const,
+  file: "e2e/app-banner-brief.spec.ts" as const,
   testName: "browser: banner controls change the poster",
+};
+
+const artSettingsTest = {
+  budget: "standard" as const,
+  file: "e2e/app-banner-art.spec.ts" as const,
+  testName: "browser: art settings stay off the poster",
 };
 
 const exportTest = {
   budget: "extended-io" as const,
-  file: "e2e/app-banner.spec.ts" as const,
+  file: "e2e/app-banner-art.spec.ts" as const,
   testName: "browser: image export writes the banner plate",
+};
+
+const exportSettingsTest = {
+  budget: "standard" as const,
+  file: "e2e/app-banner-export.spec.ts" as const,
+  testName: "browser: image export settings select format and resolution",
 };
 
 const backgroundTest = {
   budget: "standard" as const,
-  file: "e2e/app-banner.spec.ts" as const,
+  file: "e2e/app-banner-background.spec.ts" as const,
   testName: "browser: background exclusion hides the preview fill",
+};
+
+const backgroundColorTest = {
+  budget: "standard" as const,
+  file: "e2e/app-banner-background.spec.ts" as const,
+  testName: "browser: background color changes the backdrop",
 };
 
 const infinityModeTest = {
   budget: "standard" as const,
-  file: "e2e/app-banner.spec.ts" as const,
+  file: "e2e/app-banner-infinity.spec.ts" as const,
   testName: "browser: infinity keeps the banner frame",
 };
 
 const infinityExportTest = {
   budget: "extended-io" as const,
-  file: "e2e/app-banner.spec.ts" as const,
+  file: "e2e/app-banner-infinity.spec.ts" as const,
   testName: "browser: infinity export uses the banner scene bounds",
 };
 
@@ -244,7 +262,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "background color is the runtime backdrop",
-    browser: posterTest,
+    browser: backgroundColorTest,
     componentType: "color",
     evidence: "command-side-effect",
     expectedObservable: "The Background color value changes and the Setup fill uses that color.",
@@ -329,7 +347,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "token stays off the poster",
-    browser: posterTest,
+    browser: artSettingsTest,
     componentType: "text",
     evidence: "command-side-effect",
     expectedObservable: "The token value is stored without being drawn on the poster.",
@@ -343,7 +361,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "model id is a panel setting",
-    browser: posterTest,
+    browser: artSettingsTest,
     componentType: "text",
     evidence: "command-side-effect",
     expectedObservable: "The model id value changes and Generate will call that model.",
@@ -357,7 +375,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "direction is included in the art prompt",
-    browser: posterTest,
+    browser: artSettingsTest,
     componentType: "text",
     evidence: "command-side-effect",
     expectedObservable: "The direction value is kept for the next Generate request.",
@@ -388,7 +406,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "image format selects png or jpg",
-    browser: posterTest,
+    browser: exportSettingsTest,
     componentType: "select",
     evidence: "command-side-effect",
     expectedObservable: "Format selects PNG or JPG for the next image export.",
@@ -402,7 +420,7 @@ export const appAcceptance: readonly ToolcraftComponentAcceptance[] = [
   {
     automated: true,
     automatedTestName: "image resolution selects a long-edge preset",
-    browser: posterTest,
+    browser: exportSettingsTest,
     componentType: "select",
     evidence: "command-side-effect",
     expectedObservable: "Resolution selects the 2K, 4K, or 8K long edge.",
