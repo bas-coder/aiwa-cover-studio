@@ -44,20 +44,59 @@ function wrapLine(
   return lines.length > 0 ? lines : [""];
 }
 
-async function loadImage(src: string): Promise<ImageBitmap | null> {
-  if (typeof fetch !== "function" || typeof createImageBitmap !== "function") {
-    return null;
+const logoDecodeWaitMs = 4000;
+
+function failAfter(waitMs: number): Promise<never> {
+  return new Promise((_resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error("The logo did not decode in time."));
+    }, waitMs);
+  });
+}
+
+async function drawSvgLogo(
+  context: CanvasRenderingContext2D,
+  markup: string,
+  rect: BannerRect,
+): Promise<void> {
+  if (typeof Image !== "function") {
+    return;
+  }
+
+  const image: HTMLImageElement = new Image();
+  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+  await Promise.race([image.decode(), failAfter(logoDecodeWaitMs)]);
+  context.drawImage(image, rect.x, rect.y, rect.width, rect.height);
+}
+
+async function drawLogo(
+  context: CanvasRenderingContext2D,
+  src: string,
+  rect: BannerRect,
+): Promise<void> {
+  if (typeof fetch !== "function") {
+    return;
   }
 
   try {
     const response = await fetch(src);
     if (!response.ok) {
-      return null;
+      return;
     }
     const logoBlob: Blob = await response.blob();
-    return createImageBitmap(logoBlob);
+    const mediaType = logoBlob.type;
+    if (mediaType.includes("svg") || src.endsWith(".svg")) {
+      await drawSvgLogo(context, await logoBlob.text(), rect);
+      return;
+    }
+    if (typeof createImageBitmap !== "function") {
+      return;
+    }
+    const bitmap = await createImageBitmap(logoBlob);
+    context.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height);
+    bitmap.close();
   } catch {
-    return null;
+    return;
   }
 }
 
@@ -66,11 +105,15 @@ async function drawPlate(
   rect: BannerRect,
 ): Promise<void> {
   const plate = getArtPlateSnapshot();
-  if (plate.blob && typeof createImageBitmap === "function") {
-    const bitmap = await createImageBitmap(plate.blob);
-    context.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height);
-    bitmap.close();
-    return;
+  if (plate.blob && typeof createImageBitmap === "function" && !plate.blob.type.includes("svg")) {
+    try {
+      const bitmap = await createImageBitmap(plate.blob);
+      context.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height);
+      bitmap.close();
+      return;
+    } catch {
+      // A rejected plate falls through to the local brand gradient.
+    }
   }
 
   const gradient = context.createLinearGradient(
@@ -107,17 +150,12 @@ export const bannerExportRenderer: ToolcraftProductExportRenderer = {
     context.fillStyle = aiwaPalette.accent;
     context.fillRect(accent.x, accent.y, accent.width, accent.height);
 
-    const logo = await loadImage(aiwaWordmarkSrc);
-    if (logo) {
-      context.drawImage(
-        logo,
-        textX,
-        plate.y + plate.height * 0.08,
-        plate.width * 0.28,
-        plate.height * 0.12,
-      );
-      logo.close();
-    }
+    await drawLogo(context, aiwaWordmarkSrc, {
+      height: plate.height * 0.12,
+      width: plate.width * 0.28,
+      x: textX,
+      y: plate.y + plate.height * 0.08,
+    });
 
     const metaSize = Math.max(12, frame.width * 0.016);
     const headlineSize = Math.max(28, frame.width * 0.048);
