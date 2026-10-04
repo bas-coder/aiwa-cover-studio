@@ -85,6 +85,7 @@ Skip: measured performance. First delivery runs none.
 ## Evidence
 
 - Source reviewed: wordmark SVG colors #F59900 and #AC0000, inspiration folders, and the generated studio route that already mounts appComposition.
+- Cover: public/toolcraft/cover.png is the app's 16:9 PNG export at 1920 by 1080, recorded in app-cover-state.json.
 - Contract applied: product output stays in the scene, background stays in Setup, and the token is described as browser-persisted.
 
 ## Verification

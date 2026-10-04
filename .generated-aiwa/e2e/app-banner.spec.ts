@@ -33,8 +33,8 @@ import { expect, test } from "./toolcraft-product-test";
 const fourKLongEdge = 4096;
 const openGraphWidth = 1200;
 const openGraphHeight = 630;
-const coverWidth = 1600;
-const coverHeight = 900;
+const coverWidth = 1920;
+const coverHeight = 1080;
 const changedColor = "#112233";
 const proofToken = "hf_test_token";
 const rejectedStatus = 401;
@@ -232,7 +232,11 @@ async function expectToolcraftProductChange(
   await expectToolcraftProductObservableToChange(
     session,
     session.controlAction(target, run),
-    { requirementId, ...stableProof },
+    {
+      requirementId,
+      selector: "[data-toolcraft-product-output]",
+      ...stableProof,
+    },
   );
 }
 
@@ -505,26 +509,28 @@ test("browser: infinity export uses the banner scene bounds", async ({ page }) =
 test("browser: cover captures the banner plate", async ({ page }) => {
   const session = await startBanner(page);
   await runToolcraftBrowserAction(
-    session.controlAction("canvas.size.width", (control) =>
-      replaceField(control, String(coverWidth)),
+    session.controlAction("canvas.aspectRatio", (control) =>
+      chooseOption(control, page, "16:9"),
     ),
   );
-  await runToolcraftBrowserAction(
-    session.controlAction("canvas.size.height", (control) =>
-      replaceField(control, String(coverHeight)),
-    ),
-  );
+  await expect(
+    page.locator('[data-toolcraft-control-target="canvas.size.width"] input'),
+  ).toHaveValue(String(coverWidth));
+  await expect(
+    page.locator('[data-toolcraft-control-target="canvas.size.height"] input'),
+  ).toHaveValue(String(coverHeight));
   const download = await exportThrough(session, page);
   const coverDirectory = path.join(process.cwd(), "public", "toolcraft");
   await mkdir(coverDirectory, { recursive: true });
   await download.saveAs(path.join(coverDirectory, "cover.png"));
   const coverState = {
+    aspectRatio: "16:9",
     canvas: { height: coverHeight, unit: "px", width: coverWidth },
     values: {
       "appearance.background": aiwaPalette.backdrop,
       "art.direction": "Soft orange light across a dark field",
       "brief.category": "brand",
-      "brief.platform": "x",
+      "brief.platform": "open-graph",
       "copy.cta": "Learn more",
       "copy.headline": "Build what matters",
       "export.includeBackground": true,

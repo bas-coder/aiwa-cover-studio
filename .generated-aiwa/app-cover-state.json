@@ -1,0 +1,17 @@
+{
+  "aspectRatio": "16:9",
+  "canvas": {
+    "height": 1080,
+    "unit": "px",
+    "width": 1920
+  },
+  "values": {
+    "appearance.background": "#0E0C0B",
+    "art.direction": "Soft orange light across a dark field",
+    "brief.category": "brand",
+    "brief.platform": "open-graph",
+    "copy.cta": "Learn more",
+    "copy.headline": "Build what matters",
+    "export.includeBackground": true
+  }
+}
