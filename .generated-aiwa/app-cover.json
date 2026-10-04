@@ -1,0 +1,11 @@
+{
+  "asset": "public/toolcraft/cover.png",
+  "generation": {
+    "description": "Actual app result at the recorded settings; 16:9 output capture, no editor UI.",
+    "kind": "app-composition",
+    "source": "src/app/app-composition.tsx",
+    "state": "app-cover-state.json"
+  },
+  "title": "AIWA Banners",
+  "version": 1
+}
