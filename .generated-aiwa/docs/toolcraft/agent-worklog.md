@@ -78,8 +78,8 @@ Skip: measured performance. First delivery runs none.
 
 ### Performance
 
-- Decision: Responsiveness controls only, with no measured workload.
-- Reason: First delivery does not authorize a performance iteration.
+- Decision: Image Export resolution maps to one long-edge dimension. Scenarios stay empty.
+- Reason: The runtime resolution control is a workload control. First delivery does not authorize a measured performance iteration.
 - Evidence: src/app/app-performance.ts.
 
 ## Evidence

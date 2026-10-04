@@ -58,8 +58,17 @@ describe("appSchema", () => {
 
   it("keeps banner performance paths empty until a measured iteration is requested", () => {
     expect(appPerformance.scenarios).toEqual([]);
-    expect(appPerformance.workloadEnvelope).toEqual({ dimensions: [] });
     expect(appPerformance.usesCustomRenderer).toBe(false);
+    expect(appPerformance.workloadEnvelope.dimensions).toEqual([
+      expect.objectContaining({
+        id: "image-export-long-edge",
+        mapping: "direct",
+        source: {
+          kind: "schema-target",
+          target: "export.image.resolution",
+        },
+      }),
+    ]);
   });
 
   it("declares production reload coverage for the banner schema", () => {
