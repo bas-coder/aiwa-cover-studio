@@ -1,41 +1,60 @@
 import { composeToolcraftApp } from "@/toolcraft/runtime/react";
 
+import { clearArtPlate, setArtPlate } from "./art-plate";
+import { bannerExportRenderer } from "./banner-export";
+import { bannerSceneRect } from "./banner-geometry";
+import { BannerScene } from "./banner-scene";
+import {
+  buildArtPrompt,
+  defaultBannerCategory,
+  defaultBannerCopy,
+  defaultBannerPlatform,
+  defaultHuggingFaceModelId,
+  readBannerText,
+} from "./brand-profile";
+import { requestHuggingFaceArt } from "./hugging-face-art";
 import { appSchema } from "./app-schema";
-import { exportRenderer } from "./export-renderer";
-import { ProductScene } from "./product-scene";
-import { gradeCover } from "./quality";
+
+const startedProgress = 0.15;
+const finishedProgress = 1;
 
 export const appComposition = composeToolcraftApp(appSchema, {
   actions: {
-    onPanelAction: ({ action, dispatch, reportFeedback, state }) => {
-      if (action.value === "generate.variations") {
-        const current = Number(state.values["variation.seed"] ?? 1);
-        dispatch({
-          type: "controls.setValue",
-          target: "variation.seed",
-          value: current >= 24 ? 1 : current + 1,
-          label: "Generate variation",
-        });
-        reportFeedback({
-          code: "variation-ready",
-          message:
-            "A new deterministic variation is ready. Copy, layout, and motion remain fully editable.",
-        });
+    onPanelAction: async ({ action, reportFeedback, reportProgress, state }) => {
+      if (action.value !== "art.generate") {
+        return;
       }
-      if (action.value === "quality.check") {
-        const result = gradeCover(state.values);
-        reportFeedback({
-          code: "quality-result",
-          message: result.issues.length
-            ? `Quality ${result.score}/100 — ${result.issues.join(" ")}`
-            : `Quality ${result.score}/100 — Ready to export.`,
-        });
+
+      const values = state.values;
+      reportProgress(startedProgress);
+      const result = await requestHuggingFaceArt({
+        modelId: readBannerText(values, "art.model", defaultHuggingFaceModelId),
+        prompt: buildArtPrompt({
+          category: readBannerText(values, "brief.category", defaultBannerCategory),
+          direction: readBannerText(values, "art.direction", defaultBannerCopy.direction),
+          platform: readBannerText(values, "brief.platform", defaultBannerPlatform),
+        }),
+        token: readBannerText(values, "art.token", ""),
+      });
+
+      if (!result.ok) {
+        clearArtPlate();
+        reportFeedback({ code: "art-local", message: result.message });
+        return;
       }
+
+      setArtPlate(result.blob);
+      reportProgress(finishedProgress);
+      reportFeedback({
+        code: "art-ready",
+        message: "The art plate is ready. Logo and type stay locked on top.",
+      });
     },
   },
   scene: {
-    canvasContent: <ProductScene />,
-    rasterFrameRenderer: exportRenderer,
-    renderDefaultCanvasMedia: true,
+    canvasContent: <BannerScene />,
+    rasterFrameRenderer: bannerExportRenderer,
+    renderDefaultCanvasMedia: false,
+    sceneBoundsProvider: ({ state }) => [bannerSceneRect(state.canvas.size)],
   },
 });

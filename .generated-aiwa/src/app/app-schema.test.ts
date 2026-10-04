@@ -8,152 +8,75 @@ import { appPerformance } from "./app-performance";
 import { appSchema } from "./app-schema";
 
 describe("appSchema", () => {
-  it("publishes the base Toolcraft template app contract for AI assembly", () => {
-    expect(appSchema.canvas.draggable).toBe(true);
+  it("publishes the AIWA banner contract without layers, timeline, or video", () => {
     expect(appSchema.canvas.enabled).toBe(true);
+    expect(appSchema.canvas.upload).toBe(false);
     expect(appSchema.canvas.sizing).toEqual({ mode: "editable-output" });
-    expect(appSchema.canvas.upload).toBe(true);
-    expect(appSchema.panels.controls?.sections[1]?.title).toBe("Settings");
-    expect(
-      appSchema.panels.controls?.sections[0]?.controls.settingsTransfer,
-    ).toMatchObject({
-      target: "runtime.settingsTransfer",
-      type: "settingsTransfer",
-    });
-    expect(
-      appSchema.panels.controls?.sections[1]?.controls.canvasAspectRatio,
-    ).toMatchObject({
-      target: "canvas.aspectRatio",
-      type: "aspectRatio",
-    });
-    expect(
-      appSchema.panels.controls?.sections[1]?.controls.canvasWidth,
-    ).toMatchObject({
-      target: "canvas.size.width",
-      type: "text",
-    });
-    expect(
-      appSchema.panels.controls?.sections[1]?.controls.canvasHeight,
-    ).toMatchObject({
-      target: "canvas.size.height",
-      type: "text",
+    expect(appSchema.canvas.size).toEqual({
+      height: 630,
+      unit: "px",
+      width: 1200,
     });
     expect(appSchema.panels.layers).toBeUndefined();
     expect(appSchema.panels.timeline).toBeUndefined();
-    expect(appSchema.toolbar).toEqual({
-      history: true,
-      radar: true,
-      theme: true,
-      zoom: true,
-    });
-    expect(appSchema.assembly.components).toEqual([
-      "canvas",
-      "controlsPanel",
-      "toolbar",
-    ]);
-    expect(appSchema.assembly.capabilities).toEqual(
-      expect.arrayContaining([
-        "canvas.draggable",
-        "canvas.editableSize",
-        "canvas.upload",
-        "controls.defaults",
-        "controls.panel",
-        "toolbar.history",
-        "toolbar.radar",
-        "toolbar.theme",
-        "toolbar.zoom",
-      ]),
-    );
-    expect(appSchema.assembly.capabilities).not.toContain(
-      "timeline.playback",
-    );
-    expect(appSchema.assembly.capabilities).not.toContain(
-      "timeline.keyframes",
-    );
-    expect(appSchema.assembly.commands).toEqual(
-      expect.arrayContaining([
-        "canvas.center",
-        "canvas.setSize",
-        "canvas.setViewport",
-        "canvas.zoomIn",
-        "controls.reset",
-        "controls.setValue",
-        "history.undo",
-        "media.delete",
-        "media.importBatch",
-      ]),
-    );
-    expect(appSchema.assembly.commands).not.toContain(
-      "timeline.setCurrentTime",
-    );
-    expect(
-      appSchema.modulePlan.capabilities.map(
-        ({ capabilityId }) => capabilityId,
-      ),
-    ).toEqual(["media.source"]);
     expect(appSchema.modulePlan.modules.map(({ id }) => id)).toEqual([
-      "media-source",
+      "image-export",
     ]);
     expect(
-      appSchema.modulePlan.capabilities.some(({ capabilityId }) =>
-        capabilityId.startsWith("artifact."),
+      appSchema.modulePlan.capabilities.map(({ capabilityId }) => capabilityId),
+    ).toContain("artifact.image-export");
+    expect(appSchema.assembly.capabilities).not.toContain("timeline.playback");
+    expect(appSchema.assembly.capabilities).not.toContain("timeline.keyframes");
+  });
+
+  it("background include is the runtime background switch", () => {
+    const setup = appSchema.panels.controls?.sections.find(
+      (section) => section.id === "runtime.setup",
+    );
+    expect(setup?.controls.includeBackground).toMatchObject({
+      target: "export.includeBackground",
+      type: "switch",
+    });
+    expect(setup?.controls.background).toMatchObject({
+      target: "appearance.background",
+      type: "color",
+    });
+  });
+
+  it("generate and export share the sticky footer", () => {
+    const footer = appSchema.panels.controls?.sections
+      .flatMap((section) => Object.values(section.controls))
+      .find((control) => control.type === "panelActions");
+
+    expect(footer?.target).toBe("art.generate");
+    expect(
+      footer?.actions?.map((action) =>
+        typeof action === "string" ? action : action.value,
       ),
-    ).toBe(false);
+    ).toEqual(expect.arrayContaining(["art.generate", "export.png"]));
   });
 
-  it("starts with runtime setup but without product-specific panels or controls", () => {
-    const productSections =
-      appSchema.panels.controls?.sections.filter(
-        (section) => section.id !== "runtime.setup" && section.id !== "runtime.defaults",
-      ) ?? [];
-
-    expect(appSchema.panels.controls?.sections[1]?.title).toBe("Settings");
-    expect(productSections).toEqual([]);
-    expect(appSchema.panels.layers).toBeUndefined();
-    expect(appSchema.panels.timeline).toBeUndefined();
-  });
-
-  it("does not imply timeline behavior before a product needs it", () => {
-    expect(appSchema.assembly.capabilities).not.toContain(
-      "timeline.playback",
-    );
-    expect(appSchema.assembly.capabilities).not.toContain(
-      "timeline.keyframes",
-    );
-    expect(appSchema.assembly.commands).not.toContain(
-      "timeline.toggleControlKeyframes",
-    );
-    expect(appSchema.assembly.commands).not.toContain(
-      "timeline.moveKeyframe",
-    );
-  });
-
-  it("keeps starter performance paths empty until the generated product adds controls", () => {
+  it("keeps banner performance paths empty until a measured iteration is requested", () => {
     expect(appPerformance.scenarios).toEqual([]);
     expect(appPerformance.workloadEnvelope).toEqual({ dimensions: [] });
+    expect(appPerformance.usesCustomRenderer).toBe(false);
   });
 
-  it("declares production reload coverage for the starter schema", () => {
+  it("declares production reload coverage for the banner schema", () => {
     expect(appSchema.persistence.storage).toBe("localStorage");
     if (appSchema.persistence.storage !== "localStorage") {
-      throw new Error(
-        "The starter must persist user settings in localStorage.",
-      );
+      throw new Error("The banner must persist user settings in localStorage.");
     }
     expect(appSchema.persistence.include).toContain("canvas");
+    expect(appSchema.persistence.include).toContain("values");
     expect(
       appAcceptance.find((entry) => entry.id === "persistence.reload"),
     ).toMatchObject({
       automated: true,
-      browser: {
-        budget: "extended-io",
-        file: "e2e/app-persistence.spec.ts",
-      },
       evidence: "persistence-state",
       kind: "runtime",
       persistenceCoverage: "reload",
       persistenceSlices: appSchema.persistence.include,
-      target: "canvas.size.width",
     });
     expect(validateProductAcceptanceCoverage()).toEqual([]);
   });
