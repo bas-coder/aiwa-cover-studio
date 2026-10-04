@@ -94,8 +94,16 @@ describe("banner acceptance runtime", () => {
       direction: defaultBannerCopy.direction,
       platform: defaultBannerPlatform,
     });
-    const fetchMock = vi.fn(async () => new Response(null, { status: 500 }));
-    vi.stubGlobal("fetch", fetchMock);
+    let seenUrl = "";
+    let seenInit: RequestInit | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        seenUrl = String(input);
+        seenInit = init;
+        return new Response(null, { status: 500 });
+      }),
+    );
 
     await requestHuggingFaceArt({
       modelId: defaultHuggingFaceModelId,
@@ -104,10 +112,9 @@ describe("banner acceptance runtime", () => {
     });
 
     expect(prompt).not.toContain(token);
-    const [endpoint, init] = fetchMock.mock.calls[0] ?? [];
-    expect(endpoint).toBe(huggingFaceImageEndpoint(defaultHuggingFaceModelId));
-    expect(JSON.parse(String(init?.body))).toEqual({ inputs: prompt });
-    expect(init?.headers).toMatchObject({ Authorization: `Bearer ${token}` });
+    expect(seenUrl).toBe(huggingFaceImageEndpoint(defaultHuggingFaceModelId));
+    expect(JSON.parse(String(seenInit?.body))).toEqual({ inputs: prompt });
+    expect(seenInit?.headers).toMatchObject({ Authorization: `Bearer ${token}` });
     expect(controlByTarget("art.token").defaultValue).toBe("");
     vi.unstubAllGlobals();
   });
