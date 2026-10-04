@@ -43,7 +43,7 @@ export const appComposition = composeToolcraftApp(appSchema, {
         return;
       }
 
-      setArtPlate(result.blob);
+      await setArtPlate(result.blob);
       reportProgress(finishedProgress);
       reportFeedback({
         code: "art-ready",

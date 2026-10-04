@@ -44,17 +44,21 @@ function wrapLine(
   return lines.length > 0 ? lines : [""];
 }
 
-async function loadImage(src: string): Promise<CanvasImageSource | null> {
-  if (typeof Image === "undefined") {
+async function loadImage(src: string): Promise<ImageBitmap | null> {
+  if (typeof fetch !== "function" || typeof createImageBitmap !== "function") {
     return null;
   }
 
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
-    image.src = src;
-  });
+  try {
+    const response = await fetch(src);
+    if (!response.ok) {
+      return null;
+    }
+    const logoBlob: Blob = await response.blob();
+    return createImageBitmap(logoBlob);
+  } catch {
+    return null;
+  }
 }
 
 async function drawPlate(
@@ -112,6 +116,7 @@ export const bannerExportRenderer: ToolcraftProductExportRenderer = {
         plate.width * 0.28,
         plate.height * 0.12,
       );
+      logo.close();
     }
 
     const metaSize = Math.max(12, frame.width * 0.016);

@@ -31,17 +31,21 @@ export function subscribeArtPlate(listener: () => void): () => void {
   };
 }
 
-export function setArtPlate(blob: Blob): void {
-  if (artPlate.objectUrl) {
-    URL.revokeObjectURL(artPlate.objectUrl);
+function bytesToDataUrl(bytes: Uint8Array, mediaType: string): string {
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 1) {
+    binary += String.fromCharCode(bytes[index] ?? 0);
   }
+  return `data:${mediaType};base64,${btoa(binary)}`;
+}
 
-  const objectUrl =
-    typeof URL.createObjectURL === "function" ? URL.createObjectURL(blob) : null;
+export async function setArtPlate(blob: Blob): Promise<void> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const mediaType = blob.type.startsWith("image/") ? blob.type : "image/png";
 
   publish({
     blob,
-    objectUrl,
+    objectUrl: bytesToDataUrl(bytes, mediaType),
     revision: artPlate.revision + 1,
   });
 }
@@ -49,10 +53,6 @@ export function setArtPlate(blob: Blob): void {
 export function clearArtPlate(): void {
   if (!artPlate.blob && !artPlate.objectUrl) {
     return;
-  }
-
-  if (artPlate.objectUrl) {
-    URL.revokeObjectURL(artPlate.objectUrl);
   }
 
   publish({

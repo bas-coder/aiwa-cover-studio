@@ -133,8 +133,11 @@ describe("Hugging Face art request", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      setArtPlate(result.blob);
+      await setArtPlate(result.blob);
       expect(getArtPlateSnapshot().blob).toBe(result.blob);
+      expect(getArtPlateSnapshot().objectUrl?.startsWith("data:image/png;base64,")).toBe(
+        true,
+      );
       expect(getArtPlateSnapshot().revision).toBe(1);
     }
   });
